@@ -1,0 +1,1 @@
+# App for user/auth management (Feature 1)

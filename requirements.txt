@@ -1,0 +1,22 @@
+Django==4.2.5  # Core framework for backend structure, auth, admin panel
+djangorestframework==3.14.0  # For building REST APIs (e.g., meals, orders endpoints)
+djangorestframework-simplejwt==5.3.0  # JWT authentication for secure API access
+psycopg2-binary==2.9.7  # PostgreSQL database adapter
+python-dotenv==1.0.0  # For loading .env variables (e.g., DB creds, secret keys)
+gunicorn==21.2.0  # WSGI server for production deployment
+whitenoise==6.5.0  # For serving static files in production
+channels==4.0.0  # For WebSockets (real-time notifications, Extra 2)
+channels-redis==4.1.0  # Redis backend for Channels (required for production WebSockets)
+redis==5.0.0  # Redis client (for Channels)
+mpesa-python==0.0.5  # Mpesa integration library (for payment processing in orders)
+pillow==10.0.0  # For image handling (e.g., if meals have photos)
+# space
+# space
+# Additional libraries for development and testing
+pytest==7.4.2  # Testing framework (Minitest equivalent for Python unit/integration tests)
+pytest-django==4.5.2  # Pytest plugin for Django-specific testing
+factory-boy==3.3.0  # For creating test factories (e.g., mock users, meals)
+black==23.9.1  # Code formatter
+flake8==6.1.0  # Linter for code quality
+coverage==7.3.1  # Test coverage reporting
+django-debug-toolbar==4.2.0  # Debugging tool for development
