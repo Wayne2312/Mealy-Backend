@@ -1,1 +1,0 @@
-# e.g., WebSocket consumers for real-time menu updates
