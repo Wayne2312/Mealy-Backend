@@ -1,1 +1,0 @@
-# Custom JWT or token auth for API
