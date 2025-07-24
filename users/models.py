@@ -1,1 +1,0 @@
-# User models (extend AbstractUser for customers/caterers)
