@@ -1,1 +1,0 @@
-# Views for CRUD on meals/menus (admin-only)

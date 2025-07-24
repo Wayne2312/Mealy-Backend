@@ -1,1 +1,0 @@
- # App for meal options and menu management (Features 2-3)
