@@ -22,11 +22,7 @@ def serialize_meal(meal):
 @csrf_exempt
 @login_required
 def meals_list_create_view(request):
-    """
-    Handles GET for listing meals from the database and POST for creating a new meal in the database.
-    Only allows 'admin' users to create meals.
-    """
- 
+   
     if not request.user.is_staff:
         return JsonResponse({'error': 'Permission denied. Only administrators can manage meals.'}, status=403)
 
