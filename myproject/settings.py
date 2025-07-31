@@ -94,10 +94,11 @@ STATIC_URL = "static/"
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
 CORS_ALLOWED_ORIGINS = [
-    "https://mealy-frontend-six.vercel.app/",
-    "https://mealy-frontend-git-main-wayne-kimanis-projects.vercel.app/",
-    "https://mealy-frontend-m21um18cs-wayne-kimanis-projects.vercel.app/",
+    "https://mealy-frontend-git-main-wayne-kimanis-projects.vercel.app",
+    "https://mealy-frontend-m21um18cs-wayne-kimanis-projects.vercel.app",
+    "https://mealy-frontend-six.vercel.app",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
