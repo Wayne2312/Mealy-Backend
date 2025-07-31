@@ -56,7 +56,7 @@ TEMPLATES = [
 WSGI_APPLICATION = "myproject.wsgi.application"
 
 'default': dj_database_url.config(
-        default=f"postgres://{os.environ.get('DB_USER', 'mealy_user')}:{os.environ.get('DB_PASSWORD', 'your_secure_password')}@{os.environ.get('DB_HOST', 'localhost')}:{os.environ.get('DB_PORT', '5432')}/{os.environ.get('DB_NAME', 'mealy_db')}",
+        default=os.getenv('DATABASE_URL', 'postgresql://mealy_use:ZY3rhr7dO9H4vwgetMHXsu3anIhkDU7D@dpg-d25s98ggjchc73dmm9sg-a.oregon-postgres.render.com/mealy_db_nxhv'),
         conn_max_age=600,
         conn_health_checks=True,
     )
