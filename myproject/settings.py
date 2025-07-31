@@ -56,7 +56,7 @@ TEMPLATES = [
 WSGI_APPLICATION = "myproject.wsgi.application"
 
 'default': dj_database_url.config(
-        default=os.getenv('DATABASE_URL', 'postgresql://mealy_use:ZY3rhr7dO9H4vwgetMHXsu3anIhkDU7D@dpg-d25s98ggjchc73dmm9sg-a.oregon-postgres.render.com/mealy_db_nxhv'),
+       'default': dj_database_url.parse(os.environ.get('DATABASE_URL')),
         conn_max_age=600,
         conn_health_checks=True,
     )
@@ -85,6 +85,8 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = "static/"
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
