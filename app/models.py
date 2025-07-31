@@ -78,6 +78,15 @@ class Order(models.Model):
     class Meta:
         ordering = ['-order_date'] # Order by most recent order first
 
+    mpesa_checkout_request_id = models.CharField(max_length=100, blank=True, null=True)
+    mpesa_merchant_request_id = models.CharField(max_length=100, blank=True, null=True)
+    mpesa_receipt_number = models.CharField(max_length=100, blank=True, null=True)
+    transaction_date = models.CharField(max_length=100, blank=True, null=True)
+    payer_phone = models.CharField(max_length=20, blank=True, null=True)
+    payment_error = models.TextField(blank=True, null=True)
+
+
+
 # --- ORDER ITEM MODEL (for meals within an order) ---
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
