@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "corsheaders",  # ADDED: For handling CORS (Cross-Origin Resource Sharing)
     'myapp',
+    'django_mpesa',
 ]
 
 MIDDLEWARE = [
@@ -158,3 +159,19 @@ SESSION_COOKIE_SAMESITE = None
 SESSION_COOKIE_SECURE = False # Set to True in production with HTTPS
 CSRF_COOKIE_SAMESITE = None
 CSRF_COOKIE_SECURE = False # Set to True in production with HTTPS
+
+MPESA_CONFIG = {
+    'CONSUMER_KEY': os.getenv('MPESA_CONSUMER_KEY'),
+    'CONSUMER_SECRET': os.getenv('MPESA_CONSUMER_SECRET'),
+    'CERTIFICATE_FILE': None,  # or path to certificate file if using sandbox
+    'HOST_NAME': os.getenv('MPESA_HOST_NAME', 'https://yourdomain.com'),
+    'PASS_KEY': os.getenv('MPESA_PASS_KEY'),
+    'SAFARICOM_API': os.getenv('MPESA_API_URL', 'https://sandbox.safaricom.co.ke'),
+    'AUTH_URL': '/oauth/v1/generate?grant_type=client_credentials',
+    'STK_PUSH_URL': '/mpesa/stkpush/v1/processrequest',
+    'TRANSACTION_STATUS_URL': '/mpesa/transactionstatus/v1/query',
+    'CALLBACK_URL': 'https://yourdomain.com/mpesa-callback/',
+    'ACCOUNT_REFERENCE': 'YOUR_APP_NAME',
+    'TRANSACTION_TYPE': 'CustomerPayBillOnline',
+    'BUSINESS_SHORT_CODE': os.getenv('MPESA_SHORT_CODE'),
+}
