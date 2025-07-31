@@ -2,6 +2,7 @@
 
 from django.urls import path
 from . import views
+from .views import mpesa_payment_view, mpesa_callback_view
 
 urlpatterns = [
     path('hello/', views.hello_world, name='hello_world'),
@@ -20,4 +21,7 @@ urlpatterns = [
     path('orders/', views.orders_list_create_view, name='orders_list_create'),
     path('orders/today/revenue/', views.daily_revenue_view, name='daily_revenue'),
     path('payment/mpesa/', views.mpesa_payment_view, name='mpesa_payment'),
+
+    path('api/mpesa-payment/', mpesa_payment_view, name='mpesa_payment'),
+    path('mpesa-callback/', mpesa_callback_view, name='mpesa_callback'),
 ]
