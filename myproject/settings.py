@@ -55,16 +55,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "myproject.wsgi.application"
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'mealy_db'),
-        'USER': os.environ.get('DB_USER', 'mealy_use'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'your_secure_password'),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
-    }
-}
+'default': dj_database_url.config(
+        default=f"postgres://{os.environ.get('DB_USER', 'mealy_user')}:{os.environ.get('DB_PASSWORD', 'your_secure_password')}@{os.environ.get('DB_HOST', 'localhost')}:{os.environ.get('DB_PORT', '5432')}/{os.environ.get('DB_NAME', 'mealy_db')}",
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 
 AUTH_PASSWORD_VALIDATORS = [
     {
