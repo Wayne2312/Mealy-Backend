@@ -63,7 +63,7 @@ import dj_database_url
 
 DATABASES = {
     'default': dj_database_url.config(  # No extra colons or annotations
-        default=os.getenv('DATABASE_URL', 'sqlite:///db.sqlite3')
+        default=os.getenv('DATABASE_URL', 'postgresql://mealy_use:ZY3rhr7dO9H4vwgetMHXsu3anIhkDU7D@dpg-d25s98ggjchc73dmm9sg-a.oregon-postgres.render.com/mealy_db_nxhv')
     )
 }
 
