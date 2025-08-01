@@ -273,20 +273,48 @@ def daily_menu_view(request):
             if not menu_date_str or not isinstance(meal_ids, list):
                 return JsonResponse({'error': 'Missing date or meal_ids for daily menu.'}, status=400)
 
-            menu_date = date.fromisoformat(menu_date_str)
+            try:
+                menu_date = date.fromisoformat(menu_date_str)
+            except ValueError as ve:
+                print(f"Error parsing date '{menu_date_str}': {ve}")
+                return JsonResponse({'error': f'Invalid date format: {menu_date_str}. Use YYYY-MM-DD.'}, status=400)
+
             daily_menu, created = DailyMenu.objects.get_or_create(date=menu_date)
             daily_menu.meals.clear()
-            meals_to_add = Meal.objects.filter(id__in=meal_ids)
-            daily_menu.meals.add(*meals_to_add)
-            print(f"Daily menu for {menu_date} {'created' if created else 'updated'} with {len(meals_to_add)} meals.")
+
+            if meal_ids:
+                try:
+                    meal_ids_int = [int(id) for id in meal_ids]
+                    meals_to_add = Meal.objects.filter(id__in=meal_ids_int)
+                    
+                    found_ids = set(meal.id for meal in meals_to_add)
+                    requested_ids = set(meal_ids_int)
+                    missing_ids = requested_ids - found_ids
+                    if missing_ids:
+                        print(f"Warning: Some meal IDs not found: {missing_ids}")
+
+                    daily_menu.meals.add(*meals_to_add)
+                except ValueError as ve:
+                    print(f"Error: Invalid meal ID format in list {meal_ids}: {ve}")
+                    return JsonResponse({'error': 'Invalid meal ID format provided.'}, status=400)
+                except Exception as db_error:
+                    print(f"Database error while adding meals to menu for {menu_date}: {db_error}")
+                    return JsonResponse({'error': f'Failed to add meals to the menu: {str(db_error)}'}, status=500)
+
+            print(f"Daily menu for {menu_date} {'created' if created else 'updated'} with {meals_to_add.count()} meals.")
             return JsonResponse({'message': f'Daily menu for {menu_date} created/updated successfully'}, status=201)
+
         except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON'}, status=400)
-        except ValueError:
-            return JsonResponse({'error': 'Invalid date format. Use YYYY-MM-DD.'}, status=400)
+            print("Error: Invalid JSON received for daily menu creation.")
+            return JsonResponse({'error': 'Invalid JSON in request body.'}, status=400)
+        except ValueError as ve:
+            print(f"ValueError in daily menu creation: {ve}")
+            return JsonResponse({'error': f'Invalid data format: {str(ve)}'}, status=400)
         except Exception as e:
-            print(f"Error creating daily menu: {e}")
-            return JsonResponse({'error': f'Failed to create/update daily menu: {str(e)}'}, status=500)
+            print(f"Unexpected error creating daily menu: {e}")
+            import traceback
+            traceback.print_exc()
+            return JsonResponse({'error': f'An internal server error occurred while creating the menu: {str(e)}'}, status=500)
 
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
