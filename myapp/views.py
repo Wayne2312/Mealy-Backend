@@ -517,7 +517,6 @@ def mpesa_payment_view(request):
             try:
                 print(f"DEBUG: Initiating STK Push for Order {order_id}")
                 print(f"DEBUG: Phone: {phone}, Amount: {amount}, AccountRef: {account_reference}, Callback: {callback_url}")
-                from django_daraja.mpesa.core import MpesaClient
                 mpesa_client = MpesaClient()
                 response = mpesa_client.stk_push(
                     phone_number=phone,
