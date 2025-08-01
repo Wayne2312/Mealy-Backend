@@ -274,6 +274,7 @@ def daily_menu_view(request):
                 return JsonResponse({'error': 'Missing date or meal_ids for daily menu.'}, status=400)
 
             try:
+                from datetime import date
                 menu_date = date.fromisoformat(menu_date_str)
             except ValueError as ve:
                 print(f"Error parsing date '{menu_date_str}': {ve}")
