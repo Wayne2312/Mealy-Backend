@@ -472,6 +472,7 @@ def cancel_order_view(request):
 
 
 @csrf_exempt
+@jwt_login_required
 def mpesa_payment_view(request):
     if request.method == 'POST':
         print("--- DEBUG: M-Pesa Configuration Check ---")
@@ -516,6 +517,7 @@ def mpesa_payment_view(request):
             try:
                 print(f"DEBUG: Initiating STK Push for Order {order_id}")
                 print(f"DEBUG: Phone: {phone}, Amount: {amount}, AccountRef: {account_reference}, Callback: {callback_url}")
+                from django_daraja.mpesa.core import MpesaClient
                 mpesa_client = MpesaClient()
                 response = mpesa_client.stk_push(
                     phone_number=phone,
@@ -531,7 +533,7 @@ def mpesa_payment_view(request):
                     order.mpesa_checkout_request_id = checkout_request_id
                     order.mpesa_merchant_request_id = merchant_request_id
                     order.payment_status = 'initiated'
-                    order.save()
+                    order.save() # Save the order state
                     return JsonResponse({
                         'success': True,
                         'message': 'Payment request sent to your phone. Please complete the transaction.',
