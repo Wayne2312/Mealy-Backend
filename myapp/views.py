@@ -10,13 +10,16 @@ import os
 from django_daraja.mpesa.core import MpesaClient
 from django_daraja.mpesa.core import MpesaClient, MpesaInvalidParameterException, MpesaConnectionError
 import traceback
-
+import os
+import jwt
+from datetime import datetime, timedelta, timezone
 
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 
 mpesa_client = MpesaClient()
+load_dotenv()
 
 from .models import Meal, DailyMenu, Order, OrderItem
 def serialize_meal(meal):
@@ -58,6 +61,52 @@ def serialize_order(order):
 def hello_world(request):
     return HttpResponse("Hello from My Django App!")
 
+JWT_SECRET_KEY = getattr(settings, 'JWT_SECRET_KEY', os.environ.get('JWT_SECRET_KEY', 'your-super-secret-jwt-key-change-this'))
+JWT_ALGORITHM = 'HS256'
+JWT_EXPIRATION_DELTA = timedelta(hours=24)
+
+def generate_jwt_token(user):
+    payload = {
+        'user_id': user.id,
+        'email': user.email,
+        'exp': datetime.now(timezone.utc) + JWT_EXPIRATION_DELTA,
+        'iat': datetime.now(timezone.utc),
+    }
+    token = jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
+    if isinstance(token, bytes):
+        return token.decode('utf-8')
+    return token
+
+def get_user_from_jwt(request):
+    auth_header = request.META.get('HTTP_AUTHORIZATION')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return None
+
+    token = auth_header.split(' ')[1]
+    try:
+        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        user_id = payload.get('user_id')
+        if user_id:
+            try:
+                return User.objects.get(id=user_id)
+            except User.DoesNotExist:
+                return None
+    except jwt.ExpiredSignatureError:
+        return None
+    except jwt.InvalidTokenError:
+        return None
+    return None
+
+def jwt_login_required(view_func):
+    def wrapper(request, *args, **kwargs):
+        user = get_user_from_jwt(request)
+        if user is None:
+            return JsonResponse({'message': 'Authentication required'}, status=401)
+        request.user = user
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+
 @csrf_exempt
 def login_view(request):
     if request.method == 'POST':
@@ -65,24 +114,25 @@ def login_view(request):
             data = json.loads(request.body)
             email = data.get('email')
             password = data.get('password')
-
             user = authenticate(request, username=email, password=password)
-
             if user is not None:
-                login(request, user)
+                access_token = generate_jwt_token(user)
+
                 user_data = {
                     'id': user.id,
                     'email': user.email,
                     'name': user.first_name if user.first_name else user.username,
                     'role': 'admin' if user.is_staff else 'customer',
-                    'access_token': 'dummy_token_for_now' # In a real app, this would be a JWT
                 }
                 print(f"User {email} logged in successfully.")
-                return JsonResponse({'message': 'Login successful', 'user': user_data, 'access_token': user_data['access_token']}, status=200)
+                return JsonResponse({
+                    'message': 'Login successful',
+                    'user': user_data,
+                    'access_token': access_token
+                }, status=200)
             else:
                 print(f"Login failed for email: {email}")
                 return JsonResponse({'error': 'Invalid credentials'}, status=400)
-
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON in request body'}, status=400)
         except Exception as e:
@@ -94,8 +144,8 @@ def login_view(request):
 @csrf_exempt
 def me_view(request):
     if request.method == 'GET':
-        if request.user.is_authenticated:
-            user = request.user
+        user = get_user_from_jwt(request)
+        if user:
             user_data = {
                 'id': user.id,
                 'email': user.email,
@@ -120,28 +170,31 @@ def register_view(request):
             password = data.get('password')
             name = data.get('name')
             role = data.get('role', 'customer')
+
             if not email or not password or not name:
                 return JsonResponse({'error': 'Email, password, and name are required'}, status=400)
             if User.objects.filter(email=email).exists():
                 return JsonResponse({'error': 'User with this email already exists'}, status=409)
-            
-            user = User.objects.create_user(username=email, email=email, password=password)
+
+            user = User.objects.create_user(username=email, email=email, password=password, first_name=name)
             if role == 'admin':
                 user.is_staff = True
                 user.is_superuser = True
             user.save()
-            login(request, user)
+            access_token = generate_jwt_token(user)
 
             user_data = {
                 'id': user.id,
                 'email': user.email,
                 'name': user.first_name,
                 'role': 'admin' if user.is_staff else 'customer',
-                'access_token': 'dummy_token_for_now'
             }
             print(f"User {email} registered and logged in successfully.")
-            return JsonResponse({'message': 'Registration successful', 'user': user_data, 'access_token': user_data['access_token']}, status=201)
-
+            return JsonResponse({
+                'message': 'Registration successful',
+                'user': user_data,
+                'access_token': access_token
+            }, status=201)
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON in request body'}, status=400)
         except Exception as e:
@@ -152,7 +205,7 @@ def register_view(request):
     
     
 @csrf_exempt
-@login_required
+@jwt_login_required
 def meals_list_create_view(request):
     if not request.user.is_staff:
         return JsonResponse({'error': 'Permission denied. Only administrators can manage meals.'}, status=403)
@@ -187,7 +240,7 @@ def meals_list_create_view(request):
 
 
 @csrf_exempt
-@login_required
+@jwt_login_required
 def daily_menu_view(request):
     if request.method == 'GET':
         today = date.today()
@@ -230,7 +283,7 @@ def daily_menu_view(request):
 
 
 @csrf_exempt
-@login_required
+@jwt_login_required
 def orders_list_create_view(request):
     if request.method == 'GET':
         if request.user.is_staff:
@@ -278,7 +331,7 @@ def orders_list_create_view(request):
 
 
 @csrf_exempt
-@login_required
+@jwt_login_required
 def daily_revenue_view(request):
     if not request.user.is_staff:
         return JsonResponse({'error': 'Permission denied. Only administrators can view revenue.'}, status=403)
@@ -299,7 +352,7 @@ def daily_revenue_view(request):
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 @csrf_exempt
-@login_required
+@jwt_login_required
 def meal_detail_view(request, meal_id):
     if not request.user.is_staff:
         return JsonResponse({'error': 'Permission denied. Only administrators can manage meals.'}, status=403)
@@ -332,7 +385,7 @@ def meal_detail_view(request, meal_id):
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 @csrf_exempt
-@login_required
+@jwt_login_required
 @require_http_methods(["POST"])
 def cancel_order_view(request):
     try:
@@ -365,7 +418,7 @@ def cancel_order_view(request):
     
     
 @csrf_exempt
-@login_required
+@jwt_login_required
 def mpesa_payment_view(request):
     if request.method == 'POST':
         print("--- DEBUG: M-Pesa Configuration Check ---")
