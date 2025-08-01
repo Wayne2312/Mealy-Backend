@@ -10,7 +10,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.conf import settings
 from .models import Meal, DailyMenu, Order, OrderItem
-
+from django_daraja.mpesa.core import MpesaClient
 
 
 JWT_SECRET_KEY = getattr(settings, 'JWT_SECRET_KEY', os.environ.get('JWT_SECRET_KEY', 'your-super-secret-jwt-key-change-this'))
@@ -533,7 +533,7 @@ def mpesa_payment_view(request):
                     order.mpesa_checkout_request_id = checkout_request_id
                     order.mpesa_merchant_request_id = merchant_request_id
                     order.payment_status = 'initiated'
-                    order.save()
+                    order.save() # Save the order state
                     return JsonResponse({
                         'success': True,
                         'message': 'Payment request sent to your phone. Please complete the transaction.',
