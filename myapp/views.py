@@ -472,7 +472,6 @@ def cancel_order_view(request):
 
 
 @csrf_exempt
-@jwt_login_required
 def mpesa_payment_view(request):
     if request.method == 'POST':
         print("--- DEBUG: M-Pesa Configuration Check ---")
